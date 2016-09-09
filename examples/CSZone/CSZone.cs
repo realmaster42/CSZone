@@ -1,4 +1,6 @@
 ﻿/*
+   CSZone v1.0.0
+   
    CSZone created by realmaster42
    Open-source 2D light-weight C# .NET game-engine: https://github.com/realmaster42/CSZone
    It's free. If you pay for it you are getting scammed!
