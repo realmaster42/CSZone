@@ -23,6 +23,8 @@ namespace CSZone
             // CODE
             cszone = new CSZone(this); // Create game engine to current form
             character = new GameObject(null, false, 0, 0, "test.png"); // Create object
+            GameObject testObj = new GameObject(null, false, 300, 100, "test.png");
+            cszone.AddObject(testObj);
             cszone.AddObject(character); // Add object to game engine
         }
 
@@ -40,6 +42,14 @@ namespace CSZone
             if (key == "a" || key == "d" || key == "left" || key == "right")
                 if (keys.Contains(key))
                     keys = keys.Remove(keys.IndexOf(key), key.Length);
+
+            if (key == "f")
+            {
+                if (!cszone.HasFocus())
+                    cszone.Focus(character, 325, 181);
+                else
+                    cszone.LoseFocus();
+            }
         }
 
         private void Move_Tick(object sender, EventArgs e)
