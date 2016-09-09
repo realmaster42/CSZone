@@ -1,0 +1,18 @@
+c:\users\marcoantonio\documents\visual studio 2013\Projects\CSZone\CSZone\bin\Debug\CSZone.exe.config
+c:\users\marcoantonio\documents\visual studio 2013\Projects\CSZone\CSZone\obj\Debug\CSZone.csprojResolveAssemblyReference.cache
+c:\users\marcoantonio\documents\visual studio 2013\Projects\CSZone\CSZone\obj\Debug\CSZone.Form1.resources
+c:\users\marcoantonio\documents\visual studio 2013\Projects\CSZone\CSZone\obj\Debug\CSZone.Properties.Resources.resources
+c:\users\marcoantonio\documents\visual studio 2013\Projects\CSZone\CSZone\obj\Debug\CSZone.csproj.GenerateResource.Cache
+c:\users\marcoantonio\documents\visual studio 2013\Projects\CSZone\CSZone\bin\Debug\CSZone.exe
+c:\users\marcoantonio\documents\visual studio 2013\Projects\CSZone\CSZone\bin\Debug\CSZone.pdb
+c:\users\marcoantonio\documents\visual studio 2013\Projects\CSZone\CSZone\obj\Debug\CSZone.exe
+c:\users\marcoantonio\documents\visual studio 2013\Projects\CSZone\CSZone\obj\Debug\CSZone.pdb
+C:\Users\MarcoAntonio\Documents\GitHub\CSZone\examples\CSZone\bin\Debug\CSZone.exe.config
+C:\Users\MarcoAntonio\Documents\GitHub\CSZone\examples\CSZone\obj\Debug\CSZone.exe
+C:\Users\MarcoAntonio\Documents\GitHub\CSZone\examples\CSZone\obj\Debug\CSZone.pdb
+C:\Users\MarcoAntonio\Documents\GitHub\CSZone\examples\CSZone\bin\Debug\CSZone.exe
+C:\Users\MarcoAntonio\Documents\GitHub\CSZone\examples\CSZone\bin\Debug\CSZone.pdb
+C:\Users\MarcoAntonio\Documents\GitHub\CSZone\examples\CSZone\obj\Debug\CSZone.csprojResolveAssemblyReference.cache
+C:\Users\MarcoAntonio\Documents\GitHub\CSZone\examples\CSZone\obj\Debug\CSZone.Form1.resources
+C:\Users\MarcoAntonio\Documents\GitHub\CSZone\examples\CSZone\obj\Debug\CSZone.Properties.Resources.resources
+C:\Users\MarcoAntonio\Documents\GitHub\CSZone\examples\CSZone\obj\Debug\CSZone.csproj.GenerateResource.Cache
