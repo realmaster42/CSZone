@@ -2,6 +2,9 @@
 CSZone is a simple light-weight 2D C# .NET Game Engine for Windows that facilitates the game-working.
 This Game Engine is for Windows Form Applications.
 
+To add it to your code add a new class on the project called CSZone.cs, and then add the CSZone.cs code inside it.
+
+
 For an instant search for help do CTRL+F and search for your issue.
 For an instant search for a tutorial part do CTRL+F and search # Part [number].
 
