@@ -1,5 +1,5 @@
 ﻿/*
-   CSZone v1.0.1
+   CSZone v1.0.2
    
    CSZone created by realmaster42
    Open-source 2D light-weight C# .NET game-engine: https://github.com/realmaster42/CSZone
@@ -93,40 +93,42 @@ namespace CSZone // Put here your namespace's name
         void OnMouseClick(object sender, MouseEventArgs e)
         {
             if (MouseClick != null)
-                MouseClick(sender, e);
+                MouseClick(this, e);
         }
         void OnMouseDown(object sender, MouseEventArgs e)
         {
             if (MouseDown != null)
-                MouseDown(sender, e);
+                MouseDown(this, e);
         }
         void OnMouseHover(object sender, EventArgs e)
         {
             if (MouseHover != null)
-                MouseHover(sender, e);
+                MouseHover(this);
         }
         void OnMouseUp(object sender, EventArgs e)
         {
             if (MouseUp != null)
-                MouseUp(sender, e);
+                MouseUp(this);
         }
         void OnMouseEnter(object sender, EventArgs e)
         {
             if (MouseEnter != null)
-                MouseEnter(sender, e);
+                MouseEnter(this);
         }
         void OnMouseLeave(object sender, EventArgs e)
         {
             if (MouseLeave != null)
-                MouseLeave(sender, e);
+                MouseLeave(this);
         }
+        public delegate void ObjectMouseEventHandler(GameObject sender, MouseEventArgs e);
+        public delegate void ObjectEventHandler(GameObject sender);
 
-        public event MouseEventHandler MouseClick;
-        public event MouseEventHandler MouseDown;
-        public event EventHandler MouseHover;
-        public event EventHandler MouseUp;
-        public event EventHandler MouseEnter;
-        public event EventHandler MouseLeave;
+        public event ObjectMouseEventHandler MouseClick;
+        public event ObjectMouseEventHandler MouseDown;
+        public event ObjectEventHandler MouseHover;
+        public event ObjectEventHandler MouseUp;
+        public event ObjectEventHandler MouseEnter;
+        public event ObjectEventHandler MouseLeave;
 
         /// <summary>
         /// Returns the current X coordinate.
@@ -262,7 +264,7 @@ namespace CSZone // Put here your namespace's name
     {
         int velocityX = 0;
         int velocityY = 0;
-        Point target = new Point(0,0);
+        Point target = new Point(0, 0);
         GameObject item;
 
         /// <summary>
@@ -300,7 +302,7 @@ namespace CSZone // Put here your namespace's name
             objs = new List<GameObject>() { };
             focusObj = null;
             focusPermanentSpot = new Point(-999999, -999999);
-            focusSpot = new Point(-999999,-999999);
+            focusSpot = new Point(-999999, -999999);
         }
         /// <summary>
         /// Adds the specified object to the game screen.
@@ -352,7 +354,7 @@ namespace CSZone // Put here your namespace's name
         public void Focus(GameObject obj, int x, int y)
         {
             focus = true;
-            focusPermanentSpot = new Point(x,y);
+            focusPermanentSpot = new Point(x, y);
             focusObj = obj;
         }
         /// <summary>
@@ -376,7 +378,7 @@ namespace CSZone // Put here your namespace's name
         public void Focus(Point location, int x, int y)
         {
             focus = true;
-            focusPermanentSpot = new Point(x,y);
+            focusPermanentSpot = new Point(x, y);
             focusObj = null;
             focusSpot = location;
         }
