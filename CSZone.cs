@@ -1,5 +1,6 @@
 ﻿/*
-   CSZone v1.0.2
+   CSZone v1.0.3
+ * realmaster42: Fixed Reshape() and perfomance improved.
    
    CSZone created by realmaster42
    Open-source 2D light-weight C# .NET game-engine: https://github.com/realmaster42/CSZone
@@ -131,6 +132,14 @@ namespace CSZone // Put here your namespace's name
         public event ObjectEventHandler MouseLeave;
 
         /// <summary>
+        /// Returns if the current object is up-to-date.
+        /// </summary>
+        /// <returns>If the current object is up-to-date.</returns>
+        public bool Updated()
+        {
+            return this.hasSetup;
+        }
+        /// <summary>
         /// Returns the current X coordinate.
         /// </summary>
         /// <returns>The object's X coordinate.</returns>
@@ -185,6 +194,7 @@ namespace CSZone // Put here your namespace's name
                         System.Drawing.Image testImage = System.Drawing.Image.FromFile(@Environment.CurrentDirectory + @"\Images\" + Image);
                         this.width = testImage.Width;
                         this.height = testImage.Height;
+                        hasSetup = false;
                     }
                 }
         }
@@ -320,18 +330,24 @@ namespace CSZone // Put here your namespace's name
         {
             if (this.template != null)
             {
+                bool update = false;
                 try
                 {
                     foreach (GameObject obj in objs)
+                    {
+                        if (!obj.Updated())
+                            update = true;
+
                         obj.Draw(this.template, this);
+                    }
                 }
                 catch (Exception x)
                 {
                     Console.WriteLine("{Object removed/added while drawing. Will load every object next tick : " + x.Message + "}");
                 }
 
-                this.template.Refresh();
-                this.template.Focus();
+                if (update)
+                    this.template.Refresh();
             }
         }
         /// <summary>
