@@ -22,8 +22,8 @@ namespace CSZone
 
             // CODE
             cszone = new CSZone(this); // Create game engine to current form
-            character = new GameObject(null, false, 0, 0, "test.png"); // Create object
-            GameObject testObj = new GameObject(null, false, 300, 100, "test.png");
+            character = new GameObject(cszone, 0, 0, "test.png"); // Create object
+            GameObject testObj = new GameObject(cszone, 300, 100, "test.png");
             cszone.AddObject(testObj);
             cszone.AddObject(character); // Add object to game engine
         }

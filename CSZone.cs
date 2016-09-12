@@ -1,6 +1,6 @@
 ﻿/*
-   CSZone v1.0.3
- * realmaster42: Fixed Reshape() and perfomance improved.
+   CSZone v1.1.0
+ * realmaster42: Now using only one picture box. (Perfomance increases a lot)
    
    CSZone created by realmaster42
    Open-source 2D light-weight C# .NET game-engine: https://github.com/realmaster42/CSZone
@@ -16,9 +16,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Media;
 using System.IO;
 
 namespace CSZone // Put here your namespace's name
@@ -51,29 +53,26 @@ namespace CSZone // Put here your namespace's name
     {
         string image,
             key = "";
-        bool invisible,
-            hasSetup = false;
-        Panel drawz;
+        bool hasSetup = false;
         int x = 0,
             y = 0,
             width = 0,
             height = 0;
+        Image draw = null;
 
         /// <summary>
         /// Initializes a new GameObject with the following parameters.
         /// </summary>
-        /// <param name="DrawZone">The Panel to draw the image in.</param>
-        /// <param name="invisible">Wether or not the object should be visible.</param>
+        /// <param name="game">The CSZone class object.</param>
         /// <param name="x">The X coordinate to spawn.</param>
         /// <param name="y">The Y coordinate to spawn.</param>
         /// <param name="Image">The image file name and format (example.jpg).</param>
-        public GameObject(Panel DrawZone = null, bool invisible = false, int x = 0, int y = 0, string Image = "")
+        public GameObject(CSZone game, int x = 0, int y = 0, string Image = "")
         {
             this.image = Image;
-            this.invisible = invisible;
+            this.key = ("cszonegameobject" + game.GetObjectAmount().ToString());
             this.x = x;
             this.y = y;
-            this.drawz = DrawZone;
 
             if (Image != "")
                 if (!Directory.Exists(@Environment.CurrentDirectory + @"\Images"))
@@ -199,53 +198,45 @@ namespace CSZone // Put here your namespace's name
                 }
         }
         /// <summary>
+        /// Returns the current object's Image state.
+        /// </summary>
+        /// <returns>The Image file belonging to this object.</returns>
+        public Image GetImage()
+        {
+            return this.draw;
+        }
+        /// <summary>
         /// Draws the current state of the object.
         /// </summary>
-        /// <param name="handle">The Windows Form to draw the object in.</param>
         /// <param name="game">The CSZone class for reference.</param>
-        public void Draw(Form handle, CSZone game)
+        public void Draw(CSZone game)
         {
-            if (!invisible)
+            if (this.image != "")
             {
-                if (handle == null)
-                    throw new CSZoneHandleUnknown();
+                if (draw == null)
+                {
+                    draw = Image.FromFile(@Environment.CurrentDirectory + @"\Images\" + this.image);
+                }
                 else
                 {
-                    if (drawz == null)
+                    if (game.HasFocus())
                     {
-                        drawz = new Panel();
-                        drawz.Name = ("gameobject" + game.GetObjectAmount().ToString());
-                        this.key = ("gameobject" + game.GetObjectAmount().ToString());
-                        handle.Controls.Add(drawz);
-                        drawz.MouseClick += new MouseEventHandler(OnMouseClick);
-                        drawz.MouseDown += new MouseEventHandler(OnMouseDown);
-                        drawz.MouseHover += new EventHandler(OnMouseHover);
-                        drawz.MouseUp += new MouseEventHandler(OnMouseUp);
-                        drawz.MouseEnter += new EventHandler(OnMouseEnter);
-                        drawz.MouseLeave += new EventHandler(OnMouseLeave);
+                        Point focus = game.GetFocusPoint();
+                        Point permanentfocus = game.GetFocusViewPoint();
+
+                        if (this.GetKey() == game.GetFocus().GetKey())
+                            game.Overlap(draw, permanentfocus.X, permanentfocus.Y, width, height);
+                        else
+                            game.Overlap(draw, (permanentfocus.X - (this.x - focus.X)), (permanentfocus.Y - (this.y - focus.Y)), this.width, this.height);
                     }
                     else
+                        game.Overlap(draw, this.x, this.y, this.width, this.height);
+
+                    if (!hasSetup)
                     {
-                        if (game.HasFocus())
-                        {
-                            Point focus = game.GetFocusPoint();
-                            Point permanentfocus = game.GetFocusViewPoint();
+                        hasSetup = true;
 
-                            if (this.GetKey() == game.GetFocus().GetKey())
-                                drawz.Location = new Point(permanentfocus.X, permanentfocus.Y);
-                            else
-                                drawz.Location = new Point(permanentfocus.X - (this.x - focus.X), permanentfocus.Y - (this.y - focus.Y));
-                        }
-                        else
-                            drawz.Location = new Point(this.x, this.y);
-
-                        if (!hasSetup)
-                        {
-                            hasSetup = true;
-
-                            drawz.Size = new Size(this.width, this.height);
-                            drawz.BackgroundImage = Image.FromFile(@Environment.CurrentDirectory + @"\Images\" + this.image);
-                        }
+                        draw = Image.FromFile(@Environment.CurrentDirectory + @"\Images\" + this.image);
                     }
                 }
             }
@@ -264,7 +255,7 @@ namespace CSZone // Put here your namespace's name
         /// </summary>
         public void Destroy(CSZone game)
         {
-            game.OnDestroy(this);
+            game.OnDestroy(this, null);
         }
     }
     /// <summary>
@@ -294,6 +285,7 @@ namespace CSZone // Put here your namespace's name
     public class CSZone
     {
         Form template;
+        PictureBox drawingArea;
         int timer = 10,
             objsAll = 0;
         List<GameObject> objs;
@@ -309,10 +301,19 @@ namespace CSZone // Put here your namespace's name
         public CSZone(Form Handle = null)
         {
             this.template = Handle;
+
             objs = new List<GameObject>() { };
             focusObj = null;
             focusPermanentSpot = new Point(-999999, -999999);
             focusSpot = new Point(-999999, -999999);
+            if (Handle != null)
+            {
+                this.drawingArea = new PictureBox();
+                drawingArea.Name = "cszonedesigningbot";
+                drawingArea.Size = new Size(Handle.Size.Width, Handle.Size.Height);
+                Handle.Controls.Add(drawingArea);
+                Handle.Refresh();
+            }
         }
         /// <summary>
         /// Adds the specified object to the game screen.
@@ -324,30 +325,73 @@ namespace CSZone // Put here your namespace's name
             this.objs.Add(obj);
         }
         /// <summary>
+        /// Overlaps two images. (PS: Thanks to Sirjosh3917 for this function)
+        /// </summary>
+        /// <param name="overlap">The image to overlap on the current image.</param>
+        /// <returns></returns>
+        public void Overlap(Image overlap, int x, int y, int width, int height)
+        {
+            if (drawingArea != null)
+            {
+                if (drawingArea.Image != null)
+                {
+                    Image currentImg = drawingArea.Image;
+                    using (Graphics g = Graphics.FromImage(currentImg))
+                    {
+                        g.DrawImageUnscaled(overlap, x, y, width, height);
+                        drawingArea.Invoke((MethodInvoker)(() => drawingArea.Image = currentImg));
+                    }
+                }
+                else
+                {
+                    Bitmap empty = new Bitmap(this.template.Width, this.template.Height);
+                    using (Graphics grp = Graphics.FromImage(empty))
+                    {
+                        System.Drawing.SolidBrush brush = new System.Drawing.SolidBrush(Color.White);
+                        grp.FillRectangle(brush, 0, 0, this.template.Width, this.template.Height);
+
+                        using (Graphics g = Graphics.FromImage(empty))
+                        {
+                            g.DrawImageUnscaled(overlap, x, y, width, height);
+
+                            drawingArea.Invoke((MethodInvoker)(() => drawingArea.Image = empty));
+                        }
+                    }
+                }
+            }
+        }
+        /// <summary>
         /// Refreshes all game objects.
         /// </summary>
         public void Draw()
         {
             if (this.template != null)
             {
-                bool update = false;
                 try
                 {
-                    foreach (GameObject obj in objs)
-                    {
-                        if (!obj.Updated())
-                            update = true;
+                    drawingArea.Image = null;
 
-                        obj.Draw(this.template, this);
+                    try
+                    {
+                        for (int i = 0; i < objs.Count; i++)
+                        {
+                            GameObject obj = objs[i];
+
+                            obj.Draw(this);
+                        }
                     }
+                    catch (Exception x)
+                    {
+                        Console.WriteLine("{Object removed/added while drawing. Will load every object next tick : " + x.Message + "}");
+                    }
+
+                    drawingArea.Invoke((MethodInvoker)(() => drawingArea.Refresh()));
+                    this.template.Invoke((MethodInvoker)(() => this.template.Focus()));
                 }
                 catch (Exception x)
                 {
-                    Console.WriteLine("{Object removed/added while drawing. Will load every object next tick : " + x.Message + "}");
+                    Console.WriteLine("{Unexpected error occurred : " + x.Message + "}");
                 }
-
-                if (update)
-                    this.template.Refresh();
             }
         }
         /// <summary>
@@ -498,33 +542,47 @@ namespace CSZone // Put here your namespace's name
         /// Destroys the specified GameObject.
         /// </summary>
         /// <param name="obj">The GameObject to destroy.</param>
-        public void OnDestroy(GameObject obj)
+        /// <param name="extras">Lists of GameObjects to search for the object and destroy.</param>
+        public void OnDestroy(GameObject obj, params List<GameObject>[] extras)
         {
+            if (extras != null)
+            {
+                if (extras.Length > 0)
+                {
+                    for (int i = 0; i < extras.Length; i++)
+                    {
+                        int remInde = -1;
+
+                        if (extras[i].Count > 0)
+                        {
+                            for (int x = 0; x < extras[i].Count; x++)
+                                if (extras[i][x].GetKey() == obj.GetKey())
+                                    remInde = x;
+                        }
+
+                        if (remInde > -1)
+                            extras[i].RemoveAt(remInde);
+                    }
+                }
+            }
+
             int remInd = -1;
 
             if (objs.Count > 0)
             {
                 for (int objIndex = 0; objIndex < objs.Count; objIndex++)
-                    if (objs[objIndex] == obj)
+                    if (objs[objIndex].GetKey() == obj.GetKey())
                         remInd = objIndex;
             }
 
             if (remInd > -1)
             {
                 if (focusObj != null)
-                    if (objs[remInd] == focusObj)
+                    if (objs[remInd].GetKey() == focusObj.GetKey())
                         focusObj = null;
 
                 objs.RemoveAt(remInd);
             }
-
-            if (this.template != null)
-                if (this.template.Controls.Count > 0)
-                {
-                    if (obj.GetKey() != "")
-                        if (this.template.Controls.Find(obj.GetKey(), true).Length > 0)
-                            this.template.Controls.RemoveByKey(obj.GetKey());
-                }
         }
         /*/// <summary>
         /// Returns if a rectangle is touching another rectangle.
