@@ -1,6 +1,6 @@
 ﻿/*
-   CSZone v1.1.1
- * realmaster42: Screen clicked event; fix {object added/removed...}
+   CSZone v1.1.2
+ * realmaster42: Automatically adjust to latest color and size + ScreenMouseDown & ScreenMouseUp events
    
    CSZone created by realmaster42
    Open-source 2D light-weight C# .NET game-engine: https://github.com/realmaster42/CSZone
@@ -288,6 +288,7 @@ namespace CSZone // Put here your namespace's name
         PictureBox drawingArea;
         int timer = 10,
             objsAll = 0;
+        Size lastSize;
         List<GameObject> objs,
             objsToAdd;
         GameObject focusObj;
@@ -295,13 +296,25 @@ namespace CSZone // Put here your namespace's name
             focusPermanentSpot;
         bool focus = false;
 
-        public void onScreenClick(object sender, MouseEventArgs e)
+        void onScreenClick(object sender, MouseEventArgs e)
         {
             if (ScreenClick != null)
                 ScreenClick(sender, e);
         }
+        void onScreenMouseDown(object sender, MouseEventArgs e)
+        {
+            if (ScreenMouseDown != null)
+                ScreenMouseDown(sender, e);
+        }
+        void onScreenMouseUp(object sender, MouseEventArgs e)
+        {
+            if (ScreenMouseUp != null)
+                ScreenMouseUp(sender, e);
+        }
 
         public event MouseEventHandler ScreenClick;
+        public event MouseEventHandler ScreenMouseDown;
+        public event MouseEventHandler ScreenMouseUp;
 
         /// <summary>
         /// Generates the Game-Engine class to use anywhere.
@@ -321,7 +334,11 @@ namespace CSZone // Put here your namespace's name
                 this.drawingArea = new PictureBox();
                 drawingArea.Name = "cszonedesigningbot";
                 drawingArea.Size = new Size(Handle.Size.Width, Handle.Size.Height);
+                drawingArea.Location = new Point(0, 0);
+                drawingArea.MouseDown += new MouseEventHandler(onScreenMouseDown);
+                drawingArea.MouseUp += new MouseEventHandler(onScreenMouseUp);
                 drawingArea.MouseClick += new MouseEventHandler(onScreenClick);
+                lastSize = new Size(Handle.Size.Width, Handle.Size.Height);
                 Handle.Controls.Add(drawingArea);
                 Handle.Refresh();
             }
@@ -358,7 +375,7 @@ namespace CSZone // Put here your namespace's name
                     Bitmap empty = new Bitmap(this.template.Width, this.template.Height);
                     using (Graphics grp = Graphics.FromImage(empty))
                     {
-                        System.Drawing.SolidBrush brush = new System.Drawing.SolidBrush(Color.White);
+                        System.Drawing.SolidBrush brush = new System.Drawing.SolidBrush(this.template.BackColor);
                         grp.FillRectangle(brush, 0, 0, this.template.Width, this.template.Height);
 
                         using (Graphics g = Graphics.FromImage(empty))
@@ -380,7 +397,15 @@ namespace CSZone // Put here your namespace's name
             {
                 try
                 {
-                    drawingArea.Image = null;
+                    if (lastSize.Width != this.template.Size.Width || lastSize.Height != this.template.Size.Height)
+                    {
+                        lastSize = new Size(this.template.Size.Width, this.template.Size.Height);
+                        drawingArea.Invoke((MethodInvoker)(() => drawingArea.Size = new Size(this.template.Size.Width, this.template.Size.Height)));
+                        drawingArea.Invoke((MethodInvoker)(() => drawingArea.Location = new Point(0, 0)));
+                        drawingArea.Invoke((MethodInvoker)(() => drawingArea.Refresh()));
+                    }
+
+                    drawingArea.Invoke((MethodInvoker)(() => drawingArea.Image = null));
 
                     for (int i = 0; i < objs.Count; i++)
                     {
