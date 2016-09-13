@@ -1,6 +1,6 @@
 ﻿/*
-   CSZone v1.1.2
- * realmaster42: Automatically adjust to latest color and size + ScreenMouseDown & ScreenMouseUp events
+   CSZone v1.1.3
+ * realmaster42: Garbage Collector :D
    
    CSZone created by realmaster42
    Open-source 2D light-weight C# .NET game-engine: https://github.com/realmaster42/CSZone
@@ -255,7 +255,7 @@ namespace CSZone // Put here your namespace's name
         /// </summary>
         public void Destroy(CSZone game)
         {
-            game.OnDestroy(this, null);
+            game.OnDestroy(this);
         }
     }
     /// <summary>
@@ -430,7 +430,7 @@ namespace CSZone // Put here your namespace's name
                 }
                 catch (Exception x)
                 {
-                    Console.WriteLine("{Unexpected error occurred : " + x.Message + "}");
+                    Console.WriteLine("{Unexpected error occurred: " + x.Message + "}");
                 }
             }
         }
@@ -579,11 +579,11 @@ namespace CSZone // Put here your namespace's name
             return this.timer;
         }
         /// <summary>
-        /// Destroys the specified GameObject.
+        /// Destroys the specified GameObject and specified extras.
         /// </summary>
         /// <param name="obj">The GameObject to destroy.</param>
         /// <param name="extras">Lists of GameObjects to search for the object and destroy.</param>
-        public void OnDestroy(GameObject obj, params List<GameObject>[] extras)
+        public void OnDestroyAndExtras(GameObject obj, params List<GameObject>[] extras)
         {
             if (extras != null)
             {
@@ -623,6 +623,53 @@ namespace CSZone // Put here your namespace's name
 
                 objs.RemoveAt(remInd);
             }
+
+            GC.Collect();
+        }
+        /// <summary>
+        /// Destroys the specified GameObject.
+        /// </summary>
+        /// <param name="obj">The GameObject to destroy.</param>
+        public void OnDestroy(GameObject obj)
+        {
+            int remInd = -1,
+                remInd2 = -1;
+
+            if (objsToAdd.Count > 0) // Delete before add (rare)
+            {
+                for (int objIndex = 0; objIndex < objsToAdd.Count; objIndex++)
+                {
+                    if (objsToAdd[objIndex].GetKey() == obj.GetKey())
+                        remInd2 = objIndex;
+                }
+            }
+            if (objs.Count > 0)
+            {
+                for (int objIndex = 0; objIndex < objs.Count; objIndex++)
+                {
+                    if (objs[objIndex].GetKey() == obj.GetKey())
+                        remInd = objIndex;
+                }
+            }
+
+            if (remInd > -1)
+            {
+                if (focusObj != null)
+                    if (obj.GetKey() == focusObj.GetKey())
+                        focusObj = null;
+
+                objs.RemoveAt(remInd);
+            }
+            if (remInd2 > -1)
+            {
+                if (focusObj != null)
+                    if (obj.GetKey() == focusObj.GetKey())
+                        focusObj = null;
+
+                objsToAdd.RemoveAt(remInd2);
+            }
+
+            GC.Collect();
         }
         /*/// <summary>
         /// Returns if a rectangle is touching another rectangle.
