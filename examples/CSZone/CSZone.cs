@@ -312,6 +312,7 @@ namespace CSZone // Put here your namespace's name
             this.template = Handle;
 
             objs = new List<GameObject>() { };
+            objsToAdd = new List<GameObject>() { };
             focusObj = null;
             focusPermanentSpot = new Point(-999999, -999999);
             focusSpot = new Point(-999999, -999999);
