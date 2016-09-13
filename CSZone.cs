@@ -1,6 +1,6 @@
 ﻿/*
-   CSZone v1.1.0
- * realmaster42: Now using only one picture box. (Perfomance increases a lot)
+   CSZone v1.1.1
+ * realmaster42: Screen clicked event; fix {object added/removed...}
    
    CSZone created by realmaster42
    Open-source 2D light-weight C# .NET game-engine: https://github.com/realmaster42/CSZone
@@ -288,11 +288,20 @@ namespace CSZone // Put here your namespace's name
         PictureBox drawingArea;
         int timer = 10,
             objsAll = 0;
-        List<GameObject> objs;
+        List<GameObject> objs,
+            objsToAdd;
         GameObject focusObj;
         Point focusSpot,
             focusPermanentSpot;
         bool focus = false;
+
+        public void onScreenClick(object sender, MouseEventArgs e)
+        {
+            if (ScreenClick != null)
+                ScreenClick(sender, e);
+        }
+
+        public event MouseEventHandler ScreenClick;
 
         /// <summary>
         /// Generates the Game-Engine class to use anywhere.
@@ -311,6 +320,7 @@ namespace CSZone // Put here your namespace's name
                 this.drawingArea = new PictureBox();
                 drawingArea.Name = "cszonedesigningbot";
                 drawingArea.Size = new Size(Handle.Size.Width, Handle.Size.Height);
+                drawingArea.MouseClick += new MouseEventHandler(onScreenClick);
                 Handle.Controls.Add(drawingArea);
                 Handle.Refresh();
             }
@@ -322,7 +332,7 @@ namespace CSZone // Put here your namespace's name
         public void AddObject(GameObject obj)
         {
             this.objsAll++;
-            this.objs.Add(obj);
+            this.objsToAdd.Add(obj);
         }
         /// <summary>
         /// Overlaps two images. (PS: Thanks to Sirjosh3917 for this function)
@@ -371,18 +381,22 @@ namespace CSZone // Put here your namespace's name
                 {
                     drawingArea.Image = null;
 
-                    try
+                    for (int i = 0; i < objs.Count; i++)
                     {
-                        for (int i = 0; i < objs.Count; i++)
-                        {
-                            GameObject obj = objs[i];
+                        GameObject obj = objs[i];
 
-                            obj.Draw(this);
-                        }
+                        obj.Draw(this);
                     }
-                    catch (Exception x)
+                    int toRem = 0;
+                    for (int x = 0; x < objsToAdd.Count; x++)
                     {
-                        Console.WriteLine("{Object removed/added while drawing. Will load every object next tick : " + x.Message + "}");
+                        objs.Add(objsToAdd[x]);
+                        toRem++;
+                    }
+                    if (toRem > 0)
+                    {
+                        for (int r = 0; r < toRem; r++)
+                            objsToAdd.RemoveAt(0);
                     }
 
                     drawingArea.Invoke((MethodInvoker)(() => drawingArea.Refresh()));
@@ -610,19 +624,25 @@ namespace CSZone // Put here your namespace's name
         /// <returns></returns>
         public bool Colliding(Size objectsize1, Size objectsize2, Point objectpoint1, Point objectpoint2)
         {
-            int sizeX1 = objectsize1.Width;
+            /*int sizeX1 = objectsize1.Width;
             int sizeY1 = objectsize1.Height;
             int sizeX2 = objectsize2.Width;
             int sizeY2 = objectsize2.Height;
             int posX1 = objectpoint1.X;
             int posY1 = objectpoint1.Y;
             int posX2 = objectpoint2.X;
-            int posY2 = objectpoint2.Y;
+            int posY2 = objectpoint2.Y;*/
+            int min_a = objectpoint1.X + objectpoint1.Y;
+            int max_a = min_a + (objectsize1.Width + objectsize1.Height);
+            int min_b = objectpoint2.X + objectpoint2.Y;
+            int max_b = min_b + (objectsize2.Width + objectsize2.Height);
 
-            if ((sizeX1 == sizeX2) && (sizeY1 == sizeY2))
+            /*if ((sizeX1 == sizeX2) && (sizeY1 == sizeY2))
                 return !((posY1 > posY2 && posX1 > posX2) || (posY1 < posY2 && posX1 > posX2) || (posY1 < posY2 && posX1 > posX2) || (posY1 < posY2 && posX1 < posX2));
 
-            return false;
+            return false;*/
+
+            return (min_a <= max_b && max_a >= min_b);
         }
     }
 }
