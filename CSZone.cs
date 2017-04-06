@@ -1,9 +1,9 @@
 ﻿/*
-   CSZone v1.1.3
- * realmaster42: Garbage Collector :D
+   CSZone v1.2
+ * realmaster42: Fixed MouseClick, MouseDown and MouseUp for objects.
    
    CSZone created by realmaster42
-   Open-source 2D light-weight C# .NET game-engine: https://github.com/realmaster42/CSZone
+   Open-source 2D light-weight C# .NET game library: https://github.com/realmaster42/CSZone
    It's free. If you pay for it you are getting scammed!
    
    Licensed under MIT License.
@@ -25,13 +25,6 @@ using System.IO;
 
 namespace CSZone // Put here your namespace's name
 {
-    /// <summary>
-    /// Handle Unknown exception occurrs when the Handler is null.
-    /// </summary>
-    public class CSZoneHandleUnknown : Exception // Handler is null when required
-    {
-        public CSZoneHandleUnknown() : base("Handler Unknown", new Exception("The code specified requires a Handle but the Handle is null.")) { }
-    }
     /// <summary>
     /// Image Unknown exception occurrs when the image location sent does not exist.
     /// </summary>
@@ -90,32 +83,34 @@ namespace CSZone // Put here your namespace's name
                 }
         }
 
-        void OnMouseClick(object sender, MouseEventArgs e)
+        public void OnMouseClick(object sender, MouseEventArgs e)
         {
+            Console.WriteLine("I GOT TICKED");
+
             if (MouseClick != null)
                 MouseClick(this, e);
         }
-        void OnMouseDown(object sender, MouseEventArgs e)
+        public void OnMouseDown(object sender, MouseEventArgs e)
         {
             if (MouseDown != null)
                 MouseDown(this, e);
         }
-        void OnMouseHover(object sender, EventArgs e)
+        public void OnMouseHover(object sender, EventArgs e)
         {
             if (MouseHover != null)
                 MouseHover(this);
         }
-        void OnMouseUp(object sender, EventArgs e)
+        public void OnMouseUp(object sender, EventArgs e)
         {
             if (MouseUp != null)
                 MouseUp(this);
         }
-        void OnMouseEnter(object sender, EventArgs e)
+        public void OnMouseEnter(object sender, EventArgs e)
         {
             if (MouseEnter != null)
                 MouseEnter(this);
         }
-        void OnMouseLeave(object sender, EventArgs e)
+        public void OnMouseLeave(object sender, EventArgs e)
         {
             if (MouseLeave != null)
                 MouseLeave(this);
@@ -153,6 +148,22 @@ namespace CSZone // Put here your namespace's name
         public int GetY()
         {
             return this.y;
+        }
+        /// <summary>
+        /// Returns the current texture width.
+        /// </summary>
+        /// <returns>The object's texture width.</returns>
+        public int GetWidth()
+        {
+            return this.width;
+        }
+        /// <summary>
+        /// Returns the current texture height.
+        /// </summary>
+        /// <returns>The object's texture height.</returns>
+        public int GetHeight()
+        {
+            return this.height;
         }
         /// <summary>
         /// Goes to the specified location.
@@ -222,12 +233,11 @@ namespace CSZone // Put here your namespace's name
                     if (game.HasFocus())
                     {
                         Point focus = game.GetFocusPoint();
-                        Point permanentfocus = game.GetFocusViewPoint();
 
                         if (this.GetKey() == game.GetFocus().GetKey())
-                            game.Overlap(draw, permanentfocus.X, permanentfocus.Y, width, height);
+                            game.Overlap(draw, focus.X, focus.Y, width, height);
                         else
-                            game.Overlap(draw, (permanentfocus.X - (this.x - focus.X)), (permanentfocus.Y - (this.y - focus.Y)), this.width, this.height);
+                            game.Overlap(draw, (focus.X - (this.x * width)), (focus.Y - (this.y * height)), width, height);
                     }
                     else
                         game.Overlap(draw, this.x, this.y, this.width, this.height);
@@ -292,22 +302,43 @@ namespace CSZone // Put here your namespace's name
         List<GameObject> objs,
             objsToAdd;
         GameObject focusObj;
-        Point focusSpot,
-            focusPermanentSpot;
+        Point focusPermanentSpot;
         bool focus = false;
+        Dictionary<string, string> coord = new Dictionary<string, string>();
 
         void onScreenClick(object sender, MouseEventArgs e)
         {
+            if (coord.ContainsKey(e.X.ToString() + "|" + e.Y.ToString()))
+            {
+                for (int x = 0; x < objs.Count; x++)
+                    if (coord[e.X.ToString() + "|" + e.Y.ToString()] == objs[x].GetKey())
+                        objs[x].OnMouseClick(sender, e);
+            }
+
             if (ScreenClick != null)
                 ScreenClick(sender, e);
         }
         void onScreenMouseDown(object sender, MouseEventArgs e)
         {
+            if (coord.ContainsKey(e.X.ToString() + "|" + e.Y.ToString()))
+            {
+                for (int x = 0; x < objs.Count; x++)
+                    if (coord[e.X.ToString() + "|" + e.Y.ToString()] == objs[x].GetKey())
+                        objs[x].OnMouseDown(sender, e);
+            }
+
             if (ScreenMouseDown != null)
                 ScreenMouseDown(sender, e);
         }
         void onScreenMouseUp(object sender, MouseEventArgs e)
         {
+            if (coord.ContainsKey(e.X.ToString() + "|" + e.Y.ToString()))
+            {
+                for (int x = 0; x < objs.Count; x++)
+                    if (coord[e.X.ToString() + "|" + e.Y.ToString()] == objs[x].GetKey())
+                        objs[x].OnMouseUp(sender, e);
+            }
+
             if (ScreenMouseUp != null)
                 ScreenMouseUp(sender, e);
         }
@@ -328,7 +359,7 @@ namespace CSZone // Put here your namespace's name
             objsToAdd = new List<GameObject>() { };
             focusObj = null;
             focusPermanentSpot = new Point(-999999, -999999);
-            focusSpot = new Point(-999999, -999999);
+
             if (Handle != null)
             {
                 this.drawingArea = new PictureBox();
@@ -397,6 +428,8 @@ namespace CSZone // Put here your namespace's name
             {
                 try
                 {
+                    coord.Clear();
+
                     if (lastSize.Width != this.template.Size.Width || lastSize.Height != this.template.Size.Height)
                     {
                         lastSize = new Size(this.template.Size.Width, this.template.Size.Height);
@@ -411,8 +444,18 @@ namespace CSZone // Put here your namespace's name
                     {
                         GameObject obj = objs[i];
 
+                        for (int e = obj.GetX(); e < obj.GetX() + obj.GetWidth(); e++)
+                            for (int ee = obj.GetY(); ee < obj.GetY() + obj.GetHeight(); ee++)
+                            {
+                                if (coord.ContainsKey(e.ToString() + "|" + ee.ToString()))
+                                    coord[e.ToString() + "|" + ee.ToString()] = obj.GetKey();
+                                else
+                                    coord.Add(e.ToString() + "|" + ee.ToString(), obj.GetKey());
+                            }
+
                         obj.Draw(this);
                     }
+
                     int toRem = 0;
                     for (int x = 0; x < objsToAdd.Count; x++)
                     {
@@ -458,56 +501,25 @@ namespace CSZone // Put here your namespace's name
             focusObj = obj;
         }
         /// <summary>
-        /// Sets the focus on the specified location.
+        /// Sets the focus on the specified coordinates.
         /// </summary>
-        /// <param name="location">The location to focus on.</param>
         /// <param name="viewPoint">The location where the object should be visible.</param>
-        public void Focus(Point location, Point viewPoint)
+        public void Focus(Point viewPoint)
         {
             focus = true;
             focusPermanentSpot = viewPoint;
             focusObj = null;
-            focusSpot = location;
         }
         /// <summary>
-        /// Sets the focus on the specified location.
+        /// Sets the focus on the specified coordinates.
         /// </summary>
-        /// <param name="location">The location to focus on.</param>
-        /// <param name="x">The X coordinate where the focus is visible.</param>
-        /// <param name="y">The Y coordinate where the focus is visible.</param>
-        public void Focus(Point location, int x, int y)
+        /// <param name="x">The X coordinate to focus on.</param>
+        /// <param name="y">The Y coordinate to focus on.</param>
+        public void Focus(int x, int y)
         {
             focus = true;
             focusPermanentSpot = new Point(x, y);
             focusObj = null;
-            focusSpot = location;
-        }
-        /// <summary>
-        /// Sets the focus on the specified coordinates.
-        /// </summary>
-        /// <param name="x">The X coordinate to focus on.</param>
-        /// <param name="y">The Y coordinate to focus on.</param>
-        /// <param name="viewPoint">The location where the object should be visible.</param>
-        public void Focus(int x, int y, Point viewPoint)
-        {
-            focus = true;
-            focusPermanentSpot = viewPoint;
-            focusObj = null;
-            focusSpot = new Point(x, y);
-        }
-        /// <summary>
-        /// Sets the focus on the specified coordinates.
-        /// </summary>
-        /// <param name="x">The X coordinate to focus on.</param>
-        /// <param name="y">The Y coordinate to focus on.</param>
-        /// <param name="x_">The X coordinate where the focus is visible.</param>
-        /// <param name="y_">The Y coordinate where the focus is visible.</param>
-        public void Focus(int x, int y, int _x, int _y)
-        {
-            focus = true;
-            focusPermanentSpot = new Point(_x, _y);
-            focusObj = null;
-            focusSpot = new Point(x, y);
         }
         /// <summary>
         /// Loses focus on the current focused object/spot.
@@ -517,7 +529,6 @@ namespace CSZone // Put here your namespace's name
             focus = false;
             focusObj = null;
             focusPermanentSpot = new Point(-999999, -999999);
-            focusSpot = new Point(-999999, -999999);
         }
         /// <summary>
         /// Returns the current focusing spot's location.
@@ -526,16 +537,8 @@ namespace CSZone // Put here your namespace's name
         public Point GetFocusPoint()
         {
             if (focusObj != null)
-                focusSpot = new Point(focusObj.GetX(), focusObj.GetY());
+                focusPermanentSpot = new Point(focusObj.GetX(), focusObj.GetY());
 
-            return focusSpot;
-        }
-        /// <summary>
-        /// Returns the current focusing view spot's location.
-        /// </summary>
-        /// <returns>The focus view spot's location.</returns>
-        public Point GetFocusViewPoint()
-        {
             return focusPermanentSpot;
         }
         /// <summary>

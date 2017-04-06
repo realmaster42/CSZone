@@ -33,7 +33,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
-            // Moved
+            // Move
             // 
             this.Moved.Enabled = true;
             this.Moved.Interval = 10;
